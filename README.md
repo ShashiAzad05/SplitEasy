@@ -1,0 +1,2 @@
+# SplitEasy
+Expense Split App
