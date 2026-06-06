@@ -243,7 +243,7 @@ window.joinGroup = async function(){
 
 function enterApp(){
   // save session
-  sessionStorage.setItem('se_session',JSON.stringify({groupCode,groupName,myName}));
+  localStorage.setItem('se_session',JSON.stringify({groupCode,groupName,myName}));
   document.getElementById('landing').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('group-badge').style.display='flex';
@@ -257,14 +257,14 @@ window.leaveGroup = function(){
   if(!confirm('Leave this group?'))return;
   if(unsubPeople)unsubPeople(); if(unsubExpenses)unsubExpenses();
   groupCode='';groupName='';myName='';people=[];expenses=[];
-  sessionStorage.removeItem('se_session');
+  localStorage.removeItem('se_session');
   document.getElementById('landing').style.display='flex';
   document.getElementById('app').style.display='none';
   document.getElementById('group-badge').style.display='none';
 }
 
 // ── Restore session ───────────────────────────────────
-const saved=sessionStorage.getItem('se_session');
+const saved=localStorage.getItem('se_session');
 if(saved){
   const s=JSON.parse(saved);
   groupCode=s.groupCode;groupName=s.groupName;myName=s.myName;
