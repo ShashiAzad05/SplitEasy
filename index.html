@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SplitEasy</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--green:#25D366;--green-dark:#128C7E;--bg:#f0f2f5;--card:#fff;--text:#111;--sub:#667;--border:#e0e0e0;--red:#e53935;--blue:#1976d2}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{background:var(--green-dark);color:#fff;padding:1rem 1.2rem;display:flex;align-items:center;gap:0.7rem;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px #0003}
+header h1{font-size:1.2rem;font-weight:700}
+#group-badge{margin-left:auto;background:#ffffff22;border-radius:20px;padding:0.25rem 0.75rem;font-size:0.75rem;letter-spacing:0.08em;cursor:pointer;display:none}
+.container{max-width:560px;margin:0 auto;padding:1rem}
+.card{background:var(--card);border-radius:14px;padding:1.2rem;margin-bottom:1rem;box-shadow:0 1px 4px #0001}
+.card-title{font-size:0.7rem;font-weight:700;letter-spacing:0.1em;color:var(--sub);text-transform:uppercase;margin-bottom:0.9rem}
+input,select{padding:0.6rem 0.85rem;border:1.5px solid var(--border);border-radius:10px;font-size:0.95rem;outline:none;transition:border 0.2s;width:100%;background:#fff}
+input:focus,select:focus{border-color:var(--green)}
+.btn{padding:0.6rem 1rem;border:none;border-radius:10px;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.15s}
+.btn:active{opacity:0.8}
+.btn-green{background:var(--green);color:#fff}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text)}
+.btn-red{background:#ffeaea;color:var(--red);border:1.5px solid #ffc5c5}
+.btn-full{width:100%;padding:0.75rem}
+
+/* Landing */
+#landing{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center;padding:1.5rem}
+#landing .logo{font-size:3rem;margin-bottom:0.5rem}
+#landing h2{font-size:1.6rem;font-weight:800;color:var(--green-dark)}
+#landing p{color:var(--sub);margin:0.4rem 0 1.5rem;font-size:0.9rem}
+.land-card{background:var(--card);border-radius:16px;padding:1.4rem;width:100%;max-width:380px;box-shadow:0 2px 12px #0002;margin-bottom:1rem}
+.land-card h3{font-size:0.8rem;font-weight:700;letter-spacing:0.1em;color:var(--sub);text-transform:uppercase;margin-bottom:0.8rem}
+.input-row{display:flex;gap:0.5rem;margin-bottom:0.6rem}
+.input-row input{flex:1}
+.divider{display:flex;align-items:center;gap:0.7rem;margin:0.8rem 0;color:var(--sub);font-size:0.8rem}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.code-display{font-size:2rem;font-weight:800;letter-spacing:0.3em;color:var(--green-dark);text-align:center;padding:0.5rem;background:var(--bg);border-radius:10px;margin:0.5rem 0}
+
+/* People chips */
+.chip-row{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem}
+.chip{display:flex;align-items:center;gap:0.3rem;background:#e8f5e9;color:#2e7d32;border-radius:20px;padding:0.3rem 0.75rem;font-size:0.82rem;font-weight:600}
+.chip button{background:none;border:none;color:#888;cursor:pointer;font-size:1rem;line-height:1}
+
+/* Split chips */
+.cb-row{display:flex;flex-wrap:wrap;gap:0.4rem}
+.cb-item{display:flex;align-items:center;gap:0.3rem;background:var(--bg);border:1.5px solid var(--border);border-radius:20px;padding:0.35rem 0.85rem;cursor:pointer;font-size:0.85rem;transition:all 0.18s;user-select:none;opacity:0.45}
+.cb-item.active{background:#e8f5e9;border-color:var(--green);color:#2e7d32;font-weight:700;opacity:1;box-shadow:0 0 0 2px #25d36633}
+
+/* Expense list */
+.exp-item{display:flex;align-items:flex-start;gap:0.7rem;padding:0.75rem 0;border-bottom:1px solid var(--border)}
+.exp-item:last-child{border-bottom:none}
+.exp-icon{width:38px;height:38px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.exp-info{flex:1;min-width:0}
+.exp-info .name{font-weight:600;font-size:0.95rem}
+.exp-info .sub{font-size:0.75rem;color:var(--sub);margin-top:0.15rem}
+.exp-amount{font-weight:700;color:var(--green-dark);font-size:1rem;white-space:nowrap}
+.exp-del{background:none;border:none;color:#ccc;cursor:pointer;font-size:1rem;padding:0.2rem}
+.exp-del:hover{color:var(--red)}
+.empty{text-align:center;color:var(--sub);padding:1.5rem 0;font-size:0.9rem}
+
+/* Summary */
+.summary-item{display:flex;align-items:center;gap:0.6rem;padding:0.65rem 0;border-bottom:1px solid var(--border)}
+.summary-item:last-child{border-bottom:none}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0}
+.owes{color:var(--red);font-weight:600;font-size:0.85rem}
+.totals-row{display:flex;justify-content:space-between;background:var(--bg);border-radius:10px;padding:0.7rem 1rem;margin-bottom:0.8rem}
+.totals-row div{text-align:center}
+.totals-row .lbl{font-size:0.68rem;color:var(--sub);text-transform:uppercase;letter-spacing:0.05em}
+.totals-row .val{font-size:1.1rem;font-weight:700}
+.tab-row{display:flex;gap:0.4rem;margin-bottom:1rem}
+.tab{flex:1;padding:0.6rem;border:1.5px solid var(--border);border-radius:10px;background:var(--card);font-size:0.85rem;font-weight:600;cursor:pointer;text-align:center;color:var(--sub)}
+.tab.active{background:var(--green);color:#fff;border-color:var(--green)}
+.wa-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:0.6rem;padding:0.85rem;background:var(--green);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-top:0.5rem;box-shadow:0 2px 8px #25d36644}
+.wa-btn:hover{background:var(--green-dark)}
+.spinner{width:18px;height:18px;border:3px solid #fff4;border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:0.6rem 1.2rem;border-radius:20px;font-size:0.85rem;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.people-row{display:flex;gap:0.5rem;margin-bottom:0.5rem}
+.people-row input{flex:1}
+.form-grid{display:grid;gap:0.6rem}
+.form-row{display:flex;gap:0.6rem}
+.form-row input,.form-row select{flex:1}
+.split-label{font-size:0.78rem;color:var(--sub);margin-bottom:0.3rem;display:flex;justify-content:space-between;align-items:center}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<header>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  <h1>SplitEasy</h1>
+  <div id="group-badge" onclick="leaveGroup()">📌 <span id="badge-code"></span> ✕</div>
+</header>
+
+<!-- LANDING -->
+<div id="landing">
+  <div class="logo">💸</div>
+  <h2>SplitEasy</h2>
+  <p>Split expenses with friends, share via WhatsApp</p>
+
+  <div class="land-card">
+    <h3>✨ Create New Group</h3>
+    <input id="create-name" placeholder="Your name" style="margin-bottom:0.6rem">
+    <input id="create-group-name" placeholder="Group name (e.g. Goa Trip)" style="margin-bottom:0.6rem">
+    <button class="btn btn-green btn-full" onclick="createGroup()">Create Group</button>
+  </div>
+
+  <div class="land-card">
+    <h3>🔗 Join Existing Group</h3>
+    <input id="join-name" placeholder="Your name" style="margin-bottom:0.6rem">
+    <input id="join-code" placeholder="Enter 6-digit code" maxlength="6" style="margin-bottom:0.6rem;letter-spacing:0.2em;font-weight:700;text-transform:uppercase">
+    <button class="btn btn-outline btn-full" onclick="joinGroup()">Join Group</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+<div class="container">
+  <div class="tab-row">
+    <button class="tab active" onclick="showTab('expenses')">💸 Expenses</button>
+    <button class="tab" onclick="showTab('summary')">📊 Summary</button>
+  </div>
+
+  <!-- EXPENSES TAB -->
+  <div id="tab-expenses">
+    <div class="card">
+      <div class="card-title">👥 People in Group</div>
+      <div class="people-row">
+        <input id="person-input" placeholder="Add person..." onkeydown="if(event.key==='Enter')addPerson()">
+        <button class="btn btn-green" onclick="addPerson()">Add</button>
+      </div>
+      <div class="chip-row" id="people-chips"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">➕ Add Expense</div>
+      <div class="form-grid">
+        <input id="exp-desc" placeholder="Description (e.g. Dinner)">
+        <div class="form-row">
+          <input id="exp-amount" type="number" placeholder="Amount (₹)" min="0" oninput="if(splitMode==='custom')renderCustomAmounts()">
+          <select id="exp-payer"><option value="">Paid by...</option></select>
+        </div>
+        <div>
+          <div class="split-label">
+            <span>Split among: <span style="color:var(--green-dark);font-weight:700" id="selected-count"></span></span>
+            <span style="display:flex;gap:0.4rem">
+              <button class="btn btn-outline" style="font-size:0.72rem;padding:0.2rem 0.5rem" onclick="selectAll()">All</button>
+              <button class="btn btn-outline" style="font-size:0.72rem;padding:0.2rem 0.5rem" onclick="selectNone()">None</button>
+            </span>
+          </div>
+          <div class="cb-row" id="split-among" style="margin-top:0.4rem"></div>
+        </div>
+        <div id="split-amounts" style="display:none">
+          <div class="split-label" style="margin-bottom:0.4rem">Custom amounts (₹):</div>
+          <div id="custom-amount-inputs" style="display:flex;flex-direction:column;gap:0.4rem"></div>
+          <div id="split-diff" style="font-size:0.78rem;margin-top:0.4rem;color:var(--sub)"></div>
+        </div>
+        <button class="btn btn-outline" id="split-mode-btn" style="font-size:0.8rem;padding:0.4rem 0.8rem;align-self:flex-start" onclick="toggleSplitMode()">⚖️ Switch to Custom Split</button>
+        <button class="btn btn-green btn-full" onclick="addExpense()">Add Expense</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🧾 Expenses</div>
+      <div id="expense-list"><div class="empty">No expenses yet</div></div>
+    </div>
+  </div>
+
+  <!-- SUMMARY TAB -->
+  <div id="tab-summary" style="display:none">
+    <div class="card">
+      <div class="card-title">📊 Summary</div>
+      <div id="totals-row" class="totals-row" style="display:none"></div>
+      <div id="summary-list"><div class="empty">Add expenses to see summary</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">💬 Share via WhatsApp</div>
+      <p style="font-size:0.85rem;color:var(--sub);margin-bottom:0.8rem">Send the full expense summary to your group</p>
+      <button class="wa-btn" onclick="shareWhatsApp()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Share on WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBalu3vs2mbBzWCVMWP_Ugg_yTcX334IB4",
+  authDomain: "spliteasy-3f8bd.firebaseapp.com",
+  databaseURL: "https://spliteasy-3f8bd-default-rtdb.firebaseio.com",
+  projectId: "spliteasy-3f8bd",
+  storageBucket: "spliteasy-3f8bd.firebasestorage.app",
+  messagingSenderId: "123250366003",
+  appId: "1:123250366003:web:1bea8a1109a10cf624b546"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// State
+let groupCode='', groupName='', myName='', people=[], expenses=[], splitMode='equal';
+let unsubPeople=null, unsubExpenses=null;
+
+// ── Helpers ──────────────────────────────────────────
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function genCode(){return Math.random().toString(36).substr(2,6).toUpperCase();}
+
+// ── Landing ──────────────────────────────────────────
+window.createGroup = async function(){
+  const name=document.getElementById('create-name').value.trim();
+  const gname=document.getElementById('create-group-name').value.trim();
+  if(!name||!gname){toast('Enter your name and group name');return;}
+  const code=genCode();
+  await set(ref(db,`groups/${code}/info`),{name:gname,created:Date.now()});
+  await set(ref(db,`groups/${code}/people/${name}`),{joined:Date.now()});
+  myName=name; groupCode=code; groupName=gname;
+  enterApp();
+}
+
+window.joinGroup = async function(){
+  const name=document.getElementById('join-name').value.trim();
+  const code=document.getElementById('join-code').value.trim().toUpperCase();
+  if(!name||!code){toast('Enter your name and group code');return;}
+  // check group exists
+  const {get}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+  const snap=await get(ref(db,`groups/${code}/info`));
+  if(!snap.exists()){toast('❌ Group not found. Check the code.');return;}
+  groupName=snap.val().name;
+  await set(ref(db,`groups/${code}/people/${name}`),{joined:Date.now()});
+  myName=name; groupCode=code;
+  enterApp();
+}
+
+function enterApp(){
+  // save session
+  sessionStorage.setItem('se_session',JSON.stringify({groupCode,groupName,myName}));
+  document.getElementById('landing').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('group-badge').style.display='flex';
+  document.getElementById('badge-code').textContent=groupCode;
+  document.title=`SplitEasy — ${groupName}`;
+  listenPeople(); listenExpenses();
+  toast(`✅ Joined "${groupName}"`);
+}
+
+window.leaveGroup = function(){
+  if(!confirm('Leave this group?'))return;
+  if(unsubPeople)unsubPeople(); if(unsubExpenses)unsubExpenses();
+  groupCode='';groupName='';myName='';people=[];expenses=[];
+  sessionStorage.removeItem('se_session');
+  document.getElementById('landing').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('group-badge').style.display='none';
+}
+
+// ── Restore session ───────────────────────────────────
+const saved=sessionStorage.getItem('se_session');
+if(saved){
+  const s=JSON.parse(saved);
+  groupCode=s.groupCode;groupName=s.groupName;myName=s.myName;
+  enterApp();
+}
+
+// ── Firebase listeners ────────────────────────────────
+function listenPeople(){
+  unsubPeople=onValue(ref(db,`groups/${groupCode}/people`),snap=>{
+    people=snap.exists()?Object.keys(snap.val()):[];
+    renderPeople(); renderPayerSelect(); renderSplitAmong();
+  });
+}
+
+function listenExpenses(){
+  unsubExpenses=onValue(ref(db,`groups/${groupCode}/expenses`),snap=>{
+    expenses=[];
+    if(snap.exists())snap.forEach(c=>{expenses.push({id:c.key,...c.val()});});
+    renderExpenses();
+    if(document.getElementById('tab-summary').style.display!=='none')renderSummary();
+  });
+}
+
+// ── People ────────────────────────────────────────────
+window.addPerson = async function(){
+  const inp=document.getElementById('person-input');
+  const name=inp.value.trim();
+  if(!name||people.includes(name)){toast('Name empty or already added');return;}
+  await set(ref(db,`groups/${groupCode}/people/${name}`),{joined:Date.now()});
+  inp.value='';
+}
+
+window.removePerson = async function(n){
+  if(!confirm(`Remove ${n}?`))return;
+  await remove(ref(db,`groups/${groupCode}/people/${n}`));
+}
+
+function renderPeople(){
+  document.getElementById('people-chips').innerHTML=people.map(p=>`
+    <div class="chip">${p}<button onclick="removePerson('${p}')">×</button></div>`).join('');
+}
+
+function renderPayerSelect(){
+  const s=document.getElementById('exp-payer'), cur=s.value;
+  s.innerHTML='<option value="">Paid by...</option>'+people.map(p=>`<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');
+  if(!cur&&myName&&people.includes(myName))s.value=myName;
+}
+
+function renderSplitAmong(){
+  const c=document.getElementById('split-among');
+  const prev=getSelected();
+  c.innerHTML=people.map(p=>`<div class="cb-item${prev.length===0||prev.includes(p)?' active':''}" id="cb-${p}" onclick="toggleCb(this)">${p}</div>`).join('');
+  updateSelectedCount();
+}
+
+// ── Split chips ───────────────────────────────────────
+window.toggleCb=function(el){el.classList.toggle('active');updateSelectedCount();if(splitMode==='custom')renderCustomAmounts();}
+window.selectAll=function(){people.forEach(p=>{const el=document.getElementById('cb-'+p);if(el)el.classList.add('active');});updateSelectedCount();if(splitMode==='custom')renderCustomAmounts();}
+window.selectNone=function(){people.forEach(p=>{const el=document.getElementById('cb-'+p);if(el)el.classList.remove('active');});updateSelectedCount();if(splitMode==='custom')renderCustomAmounts();}
+function getSelected(){return people.filter(p=>document.getElementById('cb-'+p)?.classList.contains('active'));}
+function updateSelectedCount(){const s=getSelected();document.getElementById('selected-count').textContent=s.length?`(${s.length})`:'';}
+
+// ── Split mode ────────────────────────────────────────
+window.toggleSplitMode=function(){
+  splitMode=splitMode==='equal'?'custom':'equal';
+  document.getElementById('split-mode-btn').textContent=splitMode==='equal'?'⚖️ Switch to Custom Split':'✏️ Switch to Equal Split';
+  document.getElementById('split-amounts').style.display=splitMode==='custom'?'block':'none';
+  if(splitMode==='custom')renderCustomAmounts();
+}
+
+function renderCustomAmounts(){
+  const sel=getSelected(), amt=parseFloat(document.getElementById('exp-amount').value)||0;
+  const share=sel.length?Math.round(amt/sel.length*100)/100:0;
+  document.getElementById('custom-amount-inputs').innerHTML=sel.map(p=>`
+    <div style="display:flex;align-items:center;gap:0.5rem">
+      <div class="avatar" style="width:26px;height:26px;font-size:0.75rem">${p[0].toUpperCase()}</div>
+      <span style="flex:1;font-size:0.88rem;font-weight:600">${p}</span>
+      <input type="number" id="custom-${p}" value="${share}" min="0" step="0.01"
+        style="width:90px;padding:0.3rem 0.5rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;text-align:right"
+        oninput="updateDiff()">
+    </div>`).join('');
+  updateDiff();
+}
+
+window.updateDiff=function(){
+  const amt=parseFloat(document.getElementById('exp-amount').value)||0;
+  const sel=getSelected();
+  const total=sel.reduce((s,p)=>{return s+(parseFloat(document.getElementById('custom-'+p)?.value)||0);},0);
+  const diff=Math.round((amt-total)*100)/100;
+  const el=document.getElementById('split-diff');
+  if(!amt){el.textContent='';return;}
+  if(Math.abs(diff)<0.01){el.textContent='✅ Amounts match';el.style.color='#2e7d32';}
+  else if(diff>0){el.textContent=`⚠️ ₹${diff} unassigned`;el.style.color='#e65100';}
+  else{el.textContent=`⚠️ ₹${Math.abs(diff)} over total`;el.style.color='var(--red)';}
+}
+
+// ── Add Expense ───────────────────────────────────────
+window.addExpense = async function(){
+  const desc=document.getElementById('exp-desc').value.trim();
+  const amt=parseFloat(document.getElementById('exp-amount').value);
+  const payer=document.getElementById('exp-payer').value;
+  const among=getSelected();
+  if(!desc||!amt||amt<=0||!payer||among.length===0){toast('Please fill all fields');return;}
+  let shares={};
+  if(splitMode==='custom'){
+    const total=among.reduce((s,p)=>s+(parseFloat(document.getElementById('custom-'+p)?.value)||0),0);
+    if(Math.abs(total-amt)>0.01){toast(`Custom amounts (₹${total}) ≠ total (₹${amt})`);return;}
+    among.forEach(p=>{shares[p]=parseFloat(document.getElementById('custom-'+p)?.value)||0;});
+  } else {
+    const share=Math.round(amt/among.length*100)/100;
+    among.forEach(p=>{shares[p]=share;});
+  }
+  await push(ref(db,`groups/${groupCode}/expenses`),{desc,amount:amt,payer,among,shares,addedBy:myName,date:new Date().toLocaleDateString('en-IN'),ts:Date.now()});
+  document.getElementById('exp-desc').value='';
+  document.getElementById('exp-amount').value='';
+  toast('✅ Expense added!');
+}
+
+// ── Delete Expense ────────────────────────────────────
+window.deleteExpense = async function(id){
+  if(!confirm('Delete this expense?'))return;
+  await remove(ref(db,`groups/${groupCode}/expenses/${id}`));
+  toast('🗑 Deleted');
+}
+
+// ── Render Expenses ───────────────────────────────────
+const icons={food:'🍽️',dinner:'🍽️',lunch:'🍽️',breakfast:'🍳',drink:'🥤',movie:'🎬',hotel:'🏨',travel:'🚗',uber:'🚗',petrol:'⛽',grocery:'🛒',shopping:'🛍️',party:'🎉',default:'💸'};
+function getIcon(d){const k=Object.keys(icons).find(k=>d.toLowerCase().includes(k));return icons[k]||icons.default;}
+
+function renderExpenses(){
+  const c=document.getElementById('expense-list');
+  if(!expenses.length){c.innerHTML='<div class="empty">No expenses yet</div>';return;}
+  c.innerHTML=[...expenses].reverse().map(e=>`
+    <div class="exp-item">
+      <div class="exp-icon">${getIcon(e.desc)}</div>
+      <div class="exp-info">
+        <div class="name">${e.desc}</div>
+        <div class="sub">Paid by <b>${e.payer}</b> · ${e.among.join(', ')} · ${e.date}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.4rem">
+        <div class="exp-amount">₹${e.amount.toLocaleString('en-IN',{maximumFractionDigits:2})}</div>
+        <button class="exp-del" onclick="deleteExpense('${e.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── Summary ───────────────────────────────────────────
+function calcBalances(){
+  const bal={};
+  people.forEach(p=>bal[p]=0);
+  expenses.forEach(e=>{
+    bal[e.payer]=(bal[e.payer]||0)+e.amount;
+    e.among.forEach(p=>{const s=e.shares?e.shares[p]:e.amount/e.among.length;bal[p]=(bal[p]||0)-s;});
+  });
+  return bal;
+}
+
+function simplifyDebts(bal){
+  const debts=[];
+  const pos=Object.entries(bal).filter(([,v])=>v>0.01).sort((a,b)=>b[1]-a[1]);
+  const neg=Object.entries(bal).filter(([,v])=>v<-0.01).sort((a,b)=>a[1]-b[1]);
+  let i=0,j=0;
+  const p=[...pos.map(([k,v])=>({k,v}))], n=[...neg.map(([k,v])=>({k,v}))];
+  while(i<p.length&&j<n.length){
+    const amt=Math.min(p[i].v,-n[j].v);
+    debts.push({from:n[j].k,to:p[i].k,amount:Math.round(amt*100)/100});
+    p[i].v-=amt; n[j].v+=amt;
+    if(p[i].v<0.01)i++; if(n[j].v>-0.01)j++;
+  }
+  return debts;
+}
+
+function renderSummary(){
+  const bal=calcBalances(), debts=simplifyDebts(bal);
+  const total=expenses.reduce((s,e)=>s+e.amount,0);
+  const tr=document.getElementById('totals-row');
+  if(expenses.length){
+    tr.style.display='flex';
+    tr.innerHTML=`<div><div class="lbl">Total</div><div class="val">₹${total.toLocaleString('en-IN',{maximumFractionDigits:2})}</div></div>
+    <div><div class="lbl">Expenses</div><div class="val">${expenses.length}</div></div>
+    <div><div class="lbl">People</div><div class="val">${people.length}</div></div>`;
+  } else tr.style.display='none';
+  const c=document.getElementById('summary-list');
+  if(!debts.length&&!people.length){c.innerHTML='<div class="empty">Add people and expenses</div>';return;}
+  if(!debts.length){c.innerHTML='<div class="empty" style="color:#2e7d32">🎉 All settled up!</div>';return;}
+  c.innerHTML=debts.map(d=>`
+    <div class="summary-item">
+      <div class="avatar">${d.from[0].toUpperCase()}</div>
+      <div style="flex:1"><span style="font-weight:600">${d.from}</span><span style="color:var(--sub);font-size:0.85rem"> owes </span><span style="font-weight:600">${d.to}</span></div>
+      <div class="owes">₹${d.amount.toLocaleString('en-IN',{maximumFractionDigits:2})}</div>
+    </div>`).join('');
+}
+
+// ── Tabs ──────────────────────────────────────────────
+window.showTab=function(t){
+  document.getElementById('tab-expenses').style.display=t==='expenses'?'block':'none';
+  document.getElementById('tab-summary').style.display=t==='summary'?'block':'none';
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',(t==='expenses'&&i===0)||(t==='summary'&&i===1)));
+  if(t==='summary')renderSummary();
+}
+
+// ── WhatsApp Share ────────────────────────────────────
+window.shareWhatsApp=function(){
+  if(!expenses.length){toast('Add some expenses first!');return;}
+  const total=expenses.reduce((s,e)=>s+e.amount,0);
+  const debts=simplifyDebts(calcBalances());
+  let msg=`💰 *SplitEasy — ${groupName}*\n🔑 Group Code: *${groupCode}*\n━━━━━━━━━━━━━━━\n`;
+  msg+=`👥 *People:* ${people.join(', ')}\n💸 *Total:* ₹${total.toLocaleString('en-IN',{maximumFractionDigits:2})}\n\n`;
+  msg+=`📋 *Expenses:*\n`;
+  expenses.forEach(e=>{msg+=`• ${e.desc}: ₹${e.amount} (paid by ${e.payer})\n`;});
+  msg+=`\n📊 *Who Owes Whom:*\n`;
+  if(!debts.length){msg+=`✅ All settled up!\n`;}
+  else debts.forEach(d=>{msg+=`• ${d.from} → ${d.to}: ₹${d.amount}\n`;});
+  msg+=`\n_Join this group with code *${groupCode}* on SplitEasy_`;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+</script>
+</body>
+</html>
